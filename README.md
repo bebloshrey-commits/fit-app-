@@ -33,6 +33,21 @@ node node_modules/expo/bin/cli export --platform all
 
 For Android, use a compatible Expo Go client or `pnpm dlx eas-cli build --platform android --profile preview` to produce an internal APK. `pnpm android` now compiles a development client and requires an Android SDK, compatible JDK and a connected device/emulator. `pnpm ios` compiles the iOS development client on macOS with Xcode. Native projects can be regenerated with `pnpm exec expo prebuild --no-install`; generated `android/` and `ios/` folders are ignored in Git.
 
+### Mac setup: simulator and a physical iPhone
+
+Install Xcode from the Mac App Store, open it once, accept the license, and select the installed Command Line Tools in **Xcode > Settings > Locations**. Install Node 22.18 or newer and pnpm, then run from the project folder:
+
+```sh
+pnpm install --config.node-linker=hoisted
+pnpm exec expo prebuild --clean
+```
+
+Start a simulator from **Xcode > Open Developer Tool > Simulator**, then run `pnpm ios`.
+
+For a physical iPhone, connect it by USB, unlock it, tap **Trust** if prompted, and enable **Settings > Privacy & Security > Developer Mode**. Open `ios/*.xcworkspace` in Xcode. Select the **FitFind** target, choose your Apple ID under **Signing & Capabilities**, enable **Automatically manage signing**, select the iPhone as the run destination, and press Play. If `com.fitfind.app` is unavailable, change `bundleIdentifier` in `app.json` to a unique value such as `com.yourname.fitfind`, then run prebuild again. The first install may require trusting the developer profile under **Settings > General > VPN & Device Management**.
+
+Once signing is configured, use `pnpm ios --device` for later runs. For a shareable install link, sign in to Expo and run `pnpm dlx eas-cli build --platform ios --profile preview`; use TestFlight through App Store Connect for wider testing.
+
 ## What works
 
 - Four-tab Home / Build / Saved / Profile navigation and persistent onboarding.

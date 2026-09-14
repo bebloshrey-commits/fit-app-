@@ -54,10 +54,20 @@ function FitFindApp() {
     [paywall, setPaywall] = useState(false),
     [deleteOpen, setDeleteOpen] = useState(false);
   useEffect(() => {
-    storage
-      .load()
+    // Never leave the native splash screen up forever if a device has a
+    // stale or unavailable local-storage bridge. The app can start with
+    // fresh local data and the user can continue through onboarding.
+    Promise.race([
+      storage.load(),
+      new Promise<AppData>((resolve) =>
+        setTimeout(() => resolve(freshData()), 4000),
+      ),
+    ])
       .then(setData)
-      .catch((e) => setError(e.message));
+      .catch((e) => {
+        setError(e instanceof Error ? e.message : "Could not open FitFind.");
+        setData(freshData());
+      });
     provider
       .search({})
       .then(setProducts)
