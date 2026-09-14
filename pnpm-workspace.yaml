@@ -1,0 +1,5 @@
+nodeLinker: hoisted
+allowBuilds:
+  '@parcel/watcher': false
+  esbuild: set this to true or false
+  unrs-resolver: false
