@@ -65,6 +65,11 @@ export interface Product {
   lastUpdated: string;
   source: "demo" | "live";
   region: string;
+  sustainability?: {
+    verified: boolean;
+    certifications: string[];
+    recycledPercentage?: number;
+  } | null;
 }
 export interface Profile {
   heightCm?: string;
@@ -79,6 +84,7 @@ export interface Profile {
   brands: string;
   avoidBrands: string;
   location: string;
+  sustainableMode?: boolean;
 }
 export interface OwnedItem {
   id: string;
@@ -104,6 +110,7 @@ export interface BuildRequest {
   owned: OwnedItem[];
   requireVerifiedDelivery: boolean;
   weather: Weather | null;
+  sustainableOnly?: boolean;
 }
 export interface Scores {
   styleScore: number;
@@ -124,6 +131,41 @@ export interface Outfit extends Scores {
   variant: "Best Overall" | "Cheapest" | "Most Stylish";
   createdAt: string;
 }
+export interface PlannedOutfit {
+  id: string;
+  outfitId: string;
+  date: string;
+  note: string;
+  reminderTime: string | null;
+}
+export interface PackingItem {
+  id: string;
+  name: string;
+  packed: boolean;
+}
+export interface PackingList {
+  id: string;
+  tripName: string;
+  startsOn: string;
+  endsOn: string;
+  outfitIds: string[];
+  items: PackingItem[];
+}
+export interface PriceAlert {
+  id: string;
+  productId: string;
+  productName: string;
+  retailer: string;
+  targetPrice: number | null;
+  kind: "price_drop" | "restock";
+  createdAt: string;
+}
+export interface PersonalOutfitRating {
+  outfitId: string;
+  stars: 1 | 2 | 3 | 4 | 5;
+  note: string;
+  createdAt: string;
+}
 export const DEFAULT_PROFILE: Profile = {
   name: "",
   sizes: {
@@ -139,6 +181,7 @@ export const DEFAULT_PROFILE: Profile = {
   brands: "",
   avoidBrands: "",
   location: "London",
+  sustainableMode: false,
 };
 export const STYLES = [
   "Y2K",

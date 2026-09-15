@@ -110,6 +110,7 @@ export function eligible(p: Product, r: BuildRequest): boolean {
     (!OCCASIONS.includes(r.occasion) || p.occasionTags.includes(r.occasion)) &&
     (!r.profile.styles.length ||
       r.profile.styles.some((s) => p.styleTags.includes(s))) &&
+    (!r.sustainableOnly || p.sustainability?.verified === true) &&
     status !== "UNAVAILABLE_BEFORE_DEADLINE" &&
     (!r.requireVerifiedDelivery || status !== "DELIVERY_UNCONFIRMED")
   );

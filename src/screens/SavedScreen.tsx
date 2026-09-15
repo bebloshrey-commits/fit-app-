@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { Text, View } from "react-native";
 import { Garment } from "../components/Garment";
-import { Button, Page, s, Title } from "../components/ui";
+import { Button, Chips, Page, s, Title } from "../components/ui";
 import { Outfit } from "../models";
 import { AppData } from "../storage";
 type Tab = "Home" | "Build" | "Saved" | "Profile";
@@ -31,6 +31,38 @@ export function SavedScreen({
         data.saved.map((o) => (
           <View key={o.id} style={{ gap: 8 }}>
             {outfitTile(o)}
+            <Text style={s.label}>Your rating</Text>
+            <Chips
+              options={["1", "2", "3", "4", "5"]}
+              values={
+                data.ratings.find((rating) => rating.outfitId === o.id)
+                  ? [
+                      String(
+                        data.ratings.find((rating) => rating.outfitId === o.id)!
+                          .stars,
+                      ),
+                    ]
+                  : []
+              }
+              onChange={(value) =>
+                safe(() =>
+                  persist({
+                    ...data,
+                    ratings: [
+                      ...data.ratings.filter(
+                        (rating) => rating.outfitId !== o.id,
+                      ),
+                      {
+                        outfitId: o.id,
+                        stars: Number(value) as 1 | 2 | 3 | 4 | 5,
+                        note: "",
+                        createdAt: new Date().toISOString(),
+                      },
+                    ],
+                  }),
+                )
+              }
+            />
             <Button
               secondary
               title={`Remove ${o.name}`}

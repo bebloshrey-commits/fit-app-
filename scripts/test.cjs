@@ -56,6 +56,7 @@ const { ApiWeatherService } = require("../src/services/weather.ts");
 const { shareText, retailerUrl } = require("../src/services/commerce.ts");
 const { safeLocation } = require("../src/services/location.ts");
 const { OutfitImageSharingService } = require("../src/services/imageShare.ts");
+const { makePackingList } = require("../src/services/planner.ts");
 const { validLiveProduct } = require("../server/retailers.ts");
 const r = (budget = 5000) => ({
   profile: structuredClone(DEFAULT_PROFILE),
@@ -578,6 +579,37 @@ test("Live recommendations require complete checkout-cost evidence", () => {
   };
   assert.equal(validLiveProduct(verified), true);
   assert.equal(validLiveProduct({ ...verified, deliveryCost: null }), false);
+});
+test("Sustainable mode accepts only verified sustainability evidence", () => {
+  const request = r();
+  request.sustainableOnly = true;
+  assert.equal(eligible(DEMO_CATALOG[0], request), false);
+  assert.equal(
+    eligible(
+      {
+        ...DEMO_CATALOG[0],
+        sustainability: {
+          verified: true,
+          certifications: ["Provider verified"],
+        },
+      },
+      request,
+    ),
+    true,
+  );
+});
+test("Packing lists deduplicate purchased and owned outfit pieces", () => {
+  const outfit = outfitEngine.generate(DEMO_CATALOG, r(5000))[0];
+  const list = makePackingList("Weekend", "2026-09-20", "2026-09-21", [
+    outfit,
+    outfit,
+  ]);
+  assert.equal(list.outfitIds.length, 2);
+  assert.equal(
+    list.items.length,
+    new Set(list.items.map((item) => item.name)).size,
+  );
+  assert.ok(list.items.every((item) => item.packed === false));
 });
 (async () => {
   let failed = 0;

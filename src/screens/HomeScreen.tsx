@@ -11,12 +11,14 @@ export function HomeScreen({
   setResult,
   setTab,
   setWardrobeOpen,
+  setPlannerOpen,
   outfitTile,
 }: {
   data: AppData;
   setResult: (o: Outfit | null) => void;
   setTab: (t: Tab) => void;
   setWardrobeOpen: (v: boolean) => void;
+  setPlannerOpen: (v: boolean) => void;
   outfitTile: (o: Outfit) => ReactNode;
 }) {
   return (
@@ -62,6 +64,18 @@ export function HomeScreen({
           secondary
           title={`Use what I own · ${data.wardrobe.length} items`}
           onPress={() => setWardrobeOpen(true)}
+        />
+      </View>
+      <View style={s.card}>
+        <Text style={s.h2}>Tomorrow, sorted.</Text>
+        <Text style={s.body}>
+          Plan a saved look, build a packing list, and check your upcoming
+          outfit dates.
+        </Text>
+        <Button
+          secondary
+          title="Open outfit planner"
+          onPress={() => setPlannerOpen(true)}
         />
       </View>
       <View style={s.row}>

@@ -19,12 +19,19 @@ import { Results } from "./src/screens/Results";
 import { SavedScreen } from "./src/screens/SavedScreen";
 import { SubscriptionModal } from "./src/screens/SubscriptionModal";
 import { WardrobeModal } from "./src/screens/WardrobeModal";
+import { PlannerScreen } from "./src/screens/PlannerScreen";
 import { analytics } from "./src/services/analytics";
 import { subscriptionService } from "./src/services/subscription";
-import { UnavailableWeatherService } from "./src/services/weather";
+import {
+  ApiWeatherService,
+  UnavailableWeatherService,
+} from "./src/services/weather";
 import { AppData, freshData, storage } from "./src/storage";
 const demoProvider = new DemoProductProvider();
 const liveApiUrl = process.env.EXPO_PUBLIC_FITFIND_API_URL;
+const weatherService = liveApiUrl
+  ? new ApiWeatherService(liveApiUrl)
+  : new UnavailableWeatherService();
 const provider = liveApiUrl
   ? new FallbackProductProvider(
       new MerchantFeedProductProvider(liveApiUrl),
@@ -52,22 +59,13 @@ function FitFindApp() {
     [products, setProducts] = useState<Product[]>([]),
     [wardrobeOpen, setWardrobeOpen] = useState(false),
     [paywall, setPaywall] = useState(false),
-    [deleteOpen, setDeleteOpen] = useState(false);
+    [deleteOpen, setDeleteOpen] = useState(false),
+    [plannerOpen, setPlannerOpen] = useState(false);
   useEffect(() => {
-    // Never leave the native splash screen up forever if a device has a
-    // stale or unavailable local-storage bridge. The app can start with
-    // fresh local data and the user can continue through onboarding.
-    Promise.race([
-      storage.load(),
-      new Promise<AppData>((resolve) =>
-        setTimeout(() => resolve(freshData()), 4000),
-      ),
-    ])
+    storage
+      .load()
       .then(setData)
-      .catch((e) => {
-        setError(e instanceof Error ? e.message : "Could not open FitFind.");
-        setData(freshData());
-      });
+      .catch((e) => setError(e.message));
     provider
       .search({})
       .then(setProducts)
@@ -103,7 +101,7 @@ function FitFindApp() {
     setError("");
     analytics.track("outfit_generation_started");
     try {
-      const weather = await new UnavailableWeatherService().getWeather();
+      const weather = await weatherService.getWeather(r.location, r.deadline);
       const list = await provider.search({});
       const outfits = outfitEngine.generate(list, { ...r, weather });
       await persist({
@@ -255,6 +253,7 @@ function FitFindApp() {
             setResult={setResult}
             setTab={setTab}
             setWardrobeOpen={setWardrobeOpen}
+            setPlannerOpen={setPlannerOpen}
             outfitTile={outfitTile}
           />
         )}
@@ -271,6 +270,17 @@ function FitFindApp() {
                 persist({
                   ...data,
                   saved: [o, ...data.saved.filter((x) => x.id !== o.id)],
+                })
+              }
+              onCopyStyle={async (o) =>
+                persist({
+                  ...data,
+                  profile: {
+                    ...data.profile,
+                    styles: o.request.profile.styles,
+                    colours: o.request.profile.colours,
+                    avoidColours: o.request.profile.avoidColours,
+                  },
                 })
               }
             />
@@ -367,6 +377,19 @@ function FitFindApp() {
         persist={persist}
         paywall={paywall}
       />
+      <Modal
+        visible={plannerOpen}
+        animationType="slide"
+        onRequestClose={() => setPlannerOpen(false)}
+      >
+        <SafeAreaView style={{ flex: 1, backgroundColor: theme.paper }}>
+          <PlannerScreen
+            data={data}
+            persist={persist}
+            onClose={() => setPlannerOpen(false)}
+          />
+        </SafeAreaView>
+      </Modal>
       <Modal
         visible={deleteOpen}
         transparent

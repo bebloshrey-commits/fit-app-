@@ -33,21 +33,6 @@ node node_modules/expo/bin/cli export --platform all
 
 For Android, use a compatible Expo Go client or `pnpm dlx eas-cli build --platform android --profile preview` to produce an internal APK. `pnpm android` now compiles a development client and requires an Android SDK, compatible JDK and a connected device/emulator. `pnpm ios` compiles the iOS development client on macOS with Xcode. Native projects can be regenerated with `pnpm exec expo prebuild --no-install`; generated `android/` and `ios/` folders are ignored in Git.
 
-### Mac setup: simulator and a physical iPhone
-
-Install Xcode from the Mac App Store, open it once, accept the license, and select the installed Command Line Tools in **Xcode > Settings > Locations**. Install Node 22.18 or newer and pnpm, then run from the project folder:
-
-```sh
-pnpm install --config.node-linker=hoisted
-pnpm exec expo prebuild --clean
-```
-
-Start a simulator from **Xcode > Open Developer Tool > Simulator**, then run `pnpm ios`.
-
-For a physical iPhone, connect it by USB, unlock it, tap **Trust** if prompted, and enable **Settings > Privacy & Security > Developer Mode**. Open `ios/*.xcworkspace` in Xcode. Select the **FitFind** target, choose your Apple ID under **Signing & Capabilities**, enable **Automatically manage signing**, select the iPhone as the run destination, and press Play. If `com.fitfind.app` is unavailable, change `bundleIdentifier` in `app.json` to a unique value such as `com.yourname.fitfind`, then run prebuild again. The first install may require trusting the developer profile under **Settings > General > VPN & Device Management**.
-
-Once signing is configured, use `pnpm ios --device` for later runs. For a shareable install link, sign in to Expo and run `pnpm dlx eas-cli build --platform ios --profile preview`; use TestFlight through App Store Connect for wider testing.
-
 ## What works
 
 - Four-tab Home / Build / Saved / Profile navigation and persistent onboarding.
@@ -91,7 +76,7 @@ Delivery requires live source data, an explicit verification flag, matching dest
 
 The offline app needs **no API key and no backend**. The separate development server starts with `pnpm server`.
 
-`GET /health` is public. `POST /style` requires `Authorization: Bearer <SERVER_ACCESS_TOKEN>`, validates input and returns a deterministic explanation. `GET /weather` returns unavailable (`null`). `/products` returns 503 until an approved live provider is connected. The server binds only to `127.0.0.1:8787`.
+`GET /health` is public. `POST /style` requires `Authorization: Bearer <SERVER_ACCESS_TOKEN>`, validates input and uses a deterministic explanation when no AI credential is configured; with a server-only `AI_API_KEY`, it calls the configured model with a prompt that prohibits invented commerce or weather claims. `GET /weather` returns unavailable (`null`) when no weather credential is configured, or normalized current conditions from the configured server-side weather provider. `/products` returns 503 until an approved live provider is connected. The server binds only to `127.0.0.1:8787`.
 
 Copy `.env.example` to `.env` only if you need local server settings, then run:
 
@@ -99,14 +84,14 @@ Copy `.env.example` to `.env` only if you need local server settings, then run:
 node --env-file=.env --experimental-strip-types server/server.ts
 ```
 
-`SERVER_ACCESS_TOKEN` is a server-side development authorization value; **never embed it in the mobile bundle**. A production adapter must obtain short-lived user tokens from an authentication service. `AI_API_KEY` is a placeholder reserved for a future server AI adapter; merely supplying it does not enable an external model. The client `BackendAIProvider` falls back to deterministic explanations on timeout/failure. No model API is called per swap or calculation.
+`SERVER_ACCESS_TOKEN` is a server-side development authorization value; **never embed it in the mobile bundle**. A production adapter must obtain short-lived user tokens from an authentication service. `AI_API_KEY` enables the server-side style explanation adapter only. The client `BackendAIProvider` falls back to deterministic explanations on timeout/failure. No model API is called per swap or calculation.
 
 `.env`, credentials, build folders and signing files are ignored. There are no secrets in the client. Before deploying this development server, add real user authentication, TLS ingress, per-user rate limits, validated provider response schemas and production observability. Do not expose the local development server as-is.
 
 ## Live services still required
 
 - **Shopping:** an approved retailer/affiliate feed and a server adapter providing real HTTPS listings, licensed imagery, prices, sizes, stock, shipping and destination-specific delivery evidence. The mobile `ApiProductProvider` already supplies the interface; live ingestion and provider authentication still need implementation.
-- **Weather:** a real backend route returning the `Weather` model. Failures already fall back to no weather. The engine uses weather when supplied; it does not automatically add an unrequested jacket.
+- **Weather:** the server can normalize current conditions with `OPENWEATHER_API_KEY`; failures already fall back to no weather. The engine uses weather when supplied; it does not automatically add an unrequested jacket.
 - **AI:** optional server model integration and credentials for custom-language interpretation/explanations. Current generation is useful deterministic code, not a simulated AI wait.
 - **Payments:** App Store / Google Play or a subscription SDK, server receipt validation, restore purchases and entitlement synchronization. Current access is explicitly local simulation.
 - **Affiliate attribution:** real programme URLs and an approved click endpoint. Current product click attribution and event names exist; no purchase events are invented. Analytics are memory-only and never transmitted.
@@ -150,3 +135,11 @@ FitFind has a server-side, no-key merchant-feed adapter for normalized JSON feed
 Every live result must provide price, known order-level delivery cost, VAT status, additional tax, unavoidable fees, size stock, product URL, cost verification time and verified destination-specific delivery evidence. Missing fields make the item ineligible. Outfit totals group delivery once per retailer and show item, delivery, tax and fee components. UK consumer prices are expected to include VAT; the feed must explicitly confirm that instead of FitFind adding 20% again.
 
 The backend intentionally returns `503` when no approved feed is configured, so the client continues with clearly labelled demo data. Product credentials, if a future partner requires them, belong only on the backend.
+
+## Expanded feature status
+
+Working locally now: AI-assisted deterministic outfit ranking, explicit budget and checkout calculations, cheaper alternatives, wardrobe, saved outfits, style profile and likes/dislikes, copy-this-style, personal outfit ratings, weather-aware generation when a verified weather backend is configured, outfit calendar entries, packing lists, sustainable-only filtering based on verified retailer claims, text-to-speech outfit summaries, mock subscription state, privacy deletion and bounded local analytics.
+
+The following are intentionally provider-gated: real product/affiliate links, screenshot-to-outfit, virtual try-on, voice-to-text, price-drop/restock monitoring, notifications, group collaboration, user accounts, secure payments and admin tools. Their integration contracts are enumerated in `src/services/integrations.ts`; they do not display invented results. Add approved providers, backend authentication, consent flows, encrypted server storage, role checks, audit logs and platform receipt validation before enabling them for customers.
+
+`expo-speech` provides the native text-to-speech button. Rebuild iOS and Android development clients after adding it.

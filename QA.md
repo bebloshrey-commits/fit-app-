@@ -4,7 +4,7 @@ Verified on Windows with Node 24.19.0, Expo SDK 54 and a 390 × 844 browser view
 
 ## Automated
 
-34 automated checks pass via `node scripts/test.cjs`:
+40 automated checks pass via `node scripts/test.cjs`:
 
 - Required catalogue counts and demo provenance.
 - Complete £30, £50 and £100 outfits; occasion, size and total invariants.
@@ -20,6 +20,7 @@ Verified on Windows with Node 24.19.0, Expo SDK 54 and a 390 × 844 browser view
 - Search filters and malformed budgets.
 - Native image-sharing orchestration, temporary file cleanup and fallback errors.
 - Native JSX text containment, preventing stray whitespace outside Text components.
+- Verified-sustainability-only selection and packing-list de-duplication across purchased and owned pieces.
 
 Strict TypeScript check passed. Web, iOS and Android production exports passed, including native Hermes bytecode. API health returns 200; unauthenticated styling requests return 401.
 
@@ -43,3 +44,5 @@ Strict TypeScript check passed. Web, iOS and Android production exports passed, 
 No physical mobile device or native simulator was connected. Native permission dialogs, GPS, native share sheets and signed store packages need device acceptance testing. Live stock, delivery, payment, AI and weather integrations remain disconnected. Automated tests exercise service contracts and failure handling; they do not verify external retailer purchases. Demo artwork is illustrative, not licensed retailer photography.
 
 Monochrome redesign: 36/36 automated tests pass, including all five featured styles and optional measurement persistence. Browser checked profile, setup introduction, location, optional measurements, skip, sizes and visual picker. Corrected photo aspect ratios after screenshot inspection. Remotion MP4 rendered and bundled; physical-device playback and signed store builds remain unverified.
+
+Feature expansion: 40/40 behavioural tests pass. Browser verification created a local calendar entry, generated a packing list from a saved outfit, and checked off an item. TypeScript passes and iOS, Android and web export successfully. Text-to-speech is bundled through Expo Speech; physical-device audio has not been exercised on this Windows host.

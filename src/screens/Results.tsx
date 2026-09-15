@@ -20,6 +20,7 @@ import { analytics } from "../services/analytics";
 import { retailerUrl, shareText } from "../services/commerce";
 import { deliveryEngine, deliveryLabel } from "../services/delivery";
 import { shareCardImage } from "../services/nativeImageShare";
+import { speech } from "../services/speech";
 export function Results({
   initial,
   variants,
@@ -28,6 +29,7 @@ export function Results({
   onSave,
   onBack,
   onChange,
+  onCopyStyle,
 }: {
   initial: Outfit;
   variants: Outfit[];
@@ -36,6 +38,7 @@ export function Results({
   onSave: (o: Outfit) => Promise<void>;
   onBack: () => void;
   onChange: (o: Outfit) => void;
+  onCopyStyle: (o: Outfit) => Promise<void>;
 }) {
   const shareCard = useRef<View>(null);
   const [sharingImage, setSharingImage] = useState(false);
@@ -281,6 +284,23 @@ export function Results({
           title="Share outfit ↗"
           secondary
           onPress={() => setShareOpen(true)}
+        />
+        <Button
+          title="Copy this style"
+          secondary
+          onPress={() =>
+            run(async () => {
+              await onCopyStyle(outfit);
+              setNotice(
+                "Saved this outfit’s style and colour direction to your profile.",
+              );
+            })
+          }
+        />
+        <Button
+          title="Read outfit aloud"
+          secondary
+          onPress={() => run(() => speech.speakOutfit(outfit))}
         />
         <Button
           title="Check availability & deadline"

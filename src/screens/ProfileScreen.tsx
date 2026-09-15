@@ -1,6 +1,7 @@
-import { Text, View } from "react-native";
+import { Switch, Text, View } from "react-native";
 import { Button, Note, Page, s, Title } from "../components/ui";
 import { analytics } from "../services/analytics";
+import { integrations } from "../services/integrations";
 import { AppData } from "../storage";
 import { ProfileFields } from "./ProfileFields";
 type Tab = "Home" | "Build" | "Saved" | "Profile";
@@ -30,11 +31,31 @@ export function ProfileScreen({
         title="Your style profile."
         body="Useful preferences. Nothing more."
       />
-      <Button title="Open setup guide" secondary onPress={() => setData({...data, onboarded: false})} />
+      <Button
+        title="Open setup guide"
+        secondary
+        onPress={() => setData({ ...data, onboarded: false })}
+      />
       <ProfileFields
         profile={data.profile}
         onChange={(profile) => setData({ ...data, profile })}
       />
+      <View style={s.row}>
+        <View style={{ flex: 1 }}>
+          <Text style={s.h2}>Sustainable mode</Text>
+          <Text style={s.body}>
+            Show only retailer-verified sustainability claims when live product
+            data supports it.
+          </Text>
+        </View>
+        <Switch
+          accessibilityLabel="Sustainable mode"
+          value={data.profile.sustainableMode ?? false}
+          onValueChange={(sustainableMode) =>
+            setData({ ...data, profile: { ...data.profile, sustainableMode } })
+          }
+        />
+      </View>
       <Button
         title="Save preferences"
         onPress={() =>
@@ -60,6 +81,19 @@ export function ProfileScreen({
             analytics.track("paywall_viewed");
           }}
         />
+      </View>
+      <View style={s.card}>
+        <Text style={s.h2}>Connected features</Text>
+        <Text style={s.body}>
+          These features activate only with approved services. FitFind will not
+          simulate live shopping, voice, payments or try-on results.
+        </Text>
+        {Object.values(integrations).map((integration) => (
+          <Text key={integration.label} style={s.small}>
+            {integration.label} ·{" "}
+            {integration.state === "ready" ? "ready" : "provider needed"}
+          </Text>
+        ))}
       </View>
       <Text style={s.h2}>Your privacy</Text>
       <Text style={s.body}>

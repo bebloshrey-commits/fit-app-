@@ -42,6 +42,9 @@ export function Builder({
     ]),
     [owned, setOwned] = useState<OwnedItem[]>([]),
     [strict, setStrict] = useState(false),
+    [sustainableOnly, setSustainableOnly] = useState(
+      profile.sustainableMode ?? false,
+    ),
     [note, setNote] = useState("");
   const titles = [
     "What’s the occasion?",
@@ -103,6 +106,7 @@ export function Builder({
         owned: owned.filter((o) => categories.includes(o.category)),
         requireVerifiedDelivery: strict,
         weather: null,
+        sustainableOnly,
       });
   };
   return (
@@ -253,6 +257,19 @@ export function Builder({
             <Text style={s.body}>
               Add clothes in Home → Use what I own. Owned items cost £0.
             </Text>
+          )}
+          <View style={s.row}>
+            <Text style={[s.body, { flex: 1 }]}>
+              Verified sustainable items only
+            </Text>
+            <Switch
+              accessibilityLabel="Verified sustainable items only"
+              value={sustainableOnly}
+              onValueChange={setSustainableOnly}
+            />
+          </View>
+          {sustainableOnly && (
+            <Note text="Only products with retailer-verified sustainability claims can be selected. Demo items have no such claims, so this setting may return no match until a live provider is connected." />
           )}
         </>
       )}

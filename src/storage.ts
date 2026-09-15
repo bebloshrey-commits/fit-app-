@@ -1,26 +1,43 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { DEFAULT_PROFILE, Outfit, OwnedItem, Profile } from "./models";
+import {
+  DEFAULT_PROFILE,
+  Outfit,
+  OwnedItem,
+  PackingList,
+  PersonalOutfitRating,
+  PlannedOutfit,
+  PriceAlert,
+  Profile,
+} from "./models";
 import {
   DEFAULT_SUBSCRIPTION,
   SubscriptionState,
 } from "./services/subscription";
 export interface AppData {
-  version: 2;
+  version: 3;
   onboarded: boolean;
   profile: Profile;
   saved: Outfit[];
   recent: Outfit[];
   wardrobe: OwnedItem[];
   subscription: SubscriptionState;
+  planned: PlannedOutfit[];
+  packingLists: PackingList[];
+  priceAlerts: PriceAlert[];
+  ratings: PersonalOutfitRating[];
 }
 export const freshData = (): AppData => ({
-  version: 2,
+  version: 3,
   onboarded: false,
   profile: JSON.parse(JSON.stringify(DEFAULT_PROFILE)),
   saved: [],
   recent: [],
   wardrobe: [],
   subscription: { ...DEFAULT_SUBSCRIPTION },
+  planned: [],
+  packingLists: [],
+  priceAlerts: [],
+  ratings: [],
 });
 export const STORAGE_KEY = "fitfind.data.v2";
 export interface StorageDriver {
@@ -36,7 +53,7 @@ export class AppStorage {
     try {
       const x = JSON.parse(raw);
       if (
-        x.version !== 2 ||
+        (x.version !== 2 && x.version !== 3) ||
         !x.profile?.sizes ||
         !Array.isArray(x.saved) ||
         !Array.isArray(x.recent) ||
@@ -44,7 +61,16 @@ export class AppStorage {
         !x.subscription
       )
         throw Error();
-      return { ...freshData(), ...x };
+      return {
+        ...freshData(),
+        ...x,
+        version: 3,
+        profile: { ...DEFAULT_PROFILE, ...x.profile },
+        planned: Array.isArray(x.planned) ? x.planned : [],
+        packingLists: Array.isArray(x.packingLists) ? x.packingLists : [],
+        priceAlerts: Array.isArray(x.priceAlerts) ? x.priceAlerts : [],
+        ratings: Array.isArray(x.ratings) ? x.ratings : [],
+      };
     } catch {
       throw new Error(
         "Saved data could not be read. Reset local data to recover.",
